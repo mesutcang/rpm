@@ -1,0 +1,96 @@
+--- gcc.spec.orig	2012-03-03 17:35:09 +0000
++++ gcc.spec	2012-04-26 13:51:16 +0000
+@@ -6,26 +6,21 @@
+ %define BUILD_GXX 1
+ %undefine _with_test
+ 
+-%define gcc_branch 4.6
++%define gcc_branch 4.7
+ 
+ Summary: C compiler from the GNU Compiler Collection.
+ Name: gcc
+-Version: 4.6.3
++Version: 4.7.0
+ Release: owl1
+ Epoch: 1
+ License: GPLv3+
+ Group: Development/Languages
+ URL: http://gcc.gnu.org
+-Source0: gcc-core-%version.tar.xz
+-# ftp://ftp.gnu.org/gnu/gcc/gcc-%version/gcc-core-%version.tar.bz2
+-# Signature: ftp://ftp.gnu.org/gnu/gcc/gcc-%version/gcc-core-%version.tar.bz2.sig
+-%if %BUILD_GXX
+-Source2: gcc-g++-%version.tar.xz
+-# ftp://ftp.gnu.org/gnu/gcc/gcc-%version/gcc-g++-%version.tar.bz2
+-# Signature: ftp://ftp.gnu.org/gnu/gcc/gcc-%version/gcc-g++-%version.tar.bz2.sig
+-%endif
+-Patch0: gcc-4.6.2-owl-defaults-Wl.diff
+-
++Source0: gcc-%version.tar.gz
++# ftp://ftp.gnu.org/gnu/gcc/gcc-%version/gcc-%version.tar.gz
++# Signature: ftp://ftp.gnu.org/gnu/gcc/gcc-%version/gcc-%version.tar.gz.sig
++Patch0: gcc-4.7.0-owl-defaults-Wl.diff
++Patch1: gcc-4.7.0-owl-wrong-code-generation.diff
+ PreReq: /sbin/install-info
+ Requires: binutils
+ Requires: cpp = %epoch:%version-%release
+@@ -159,12 +154,9 @@ and -lmudflapth.
+ 
+ %prep
+ %setup -q
+-%if %BUILD_GXX
+-%setup -q -T -D -b 2
+-%endif
+ %{?_with_test:%setup -q -T -D -b 6}
+ %patch0 -p1
+-
++%patch1 -p1
+ # Use %%optflags_lib for this entire package until we figure out how to
+ # properly have just gcc's libraries built with a separate set of flags.
+ %{expand:%%define optflags %{?optflags_lib:%optflags_lib}%{!?optflags_lib:%optflags}}
+@@ -222,7 +214,9 @@ cd obj-%_target_platform
+ 	--disable-multilib \
+ 	--host=%_target_platform \
+ 	--build=%_target_platform \
+-	--target=%_target_platform
++	--target=%_target_platform \
++	--enable-languages=c,c++ \
++	--disable-bootstrap
+ 
+ TARGET_OPT_FLAGS='%optflags'
+ TARGET_OPT_LIBFLAGS='%optflags'
+@@ -233,7 +227,7 @@ TARGET_OPT_LIBFLAGS='%optflags'
+ # BOOT_FLAGS is used for stage2..n compiler
+ # ..._FOR_TARGET is used for final compiler
+ 
+-%__make bootstrap-lean \
++%__make \
+ 	STAGE1_CFLAGS="-O -fomit-frame-pointer" \
+ 	BOOT_CFLAGS="-O -fomit-frame-pointer" \
+ 	CFLAGS_FOR_TARGET="$TARGET_OPT_FLAGS" \
+@@ -270,7 +264,6 @@ mkdir %buildroot/%_lib
+ mv %buildroot%_libdir/libgcc_s.so.1 %buildroot/%_lib/
+ ln -s ../../../../../%_lib/libgcc_s.so.1 \
+ 	%buildroot%_libdir/gcc/%_target_platform/%version/libgcc_s.so
+-rm %buildroot%_libdir/libgcc_s.so
+ 
+ # Fix some things.
+ ln -s gcc %buildroot%_bindir/cc
+@@ -399,7 +392,6 @@ fi
+ %doc rpm-doc/libstdc++/*
+ %doc libstdc++-v3/doc/html
+ %exclude %_datadir/gcc-%version/python
+-%exclude %_libdir/libstdc++.so.6.0.16-gdb.py
+ 
+ %files -n libstdc++-devel
+ %defattr(-,root,root)
+@@ -447,6 +439,9 @@ fi
+ %_libdir/libmudflapth.a
+ 
+ %changelog
++* Thu Apr 26 2012 Mesut Can Gurle <mesutcang-at-gmail.com> 1:4.7.0-owl1
++- Updated to 4.7.0.
++
+ * Sat Mar 03 2012 Solar Designer <solar-at-owl.openwall.com> 1:4.6.3-owl1
+ - Updated to 4.6.3.
+ 

@@ -1,0 +1,27 @@
+diff -urpN gcc-4.7.0.orig//gcc/doc/invoke.texi gcc-4.7.0/gcc/doc/invoke.texi
+--- gcc-4.7.0.orig//gcc/doc/invoke.texi	2012-03-13 23:18:07 +0000
++++ gcc-4.7.0/gcc/doc/invoke.texi	2012-04-18 13:09:02 +0000
+@@ -9579,6 +9579,11 @@ For example, @samp{-Wl,-Map,output.map}
+ linker.  When using the GNU linker, you can also get the same effect with
+ @samp{-Wl,-Map=output.map}.
+ 
++On Openwall GNU/*/Linux (and some other systems), the options
++@option{-Wl,-z,relro} and @option{-Wl,-z,now} are assumed by default.
++To disable these, you may use @option{-Wl,-z,norelro} and
++@option{-Wl,-z,lazy}, respectively.
++
+ @item -u @var{symbol}
+ @opindex u
+ Pretend the symbol @var{symbol} is undefined, to force linking of
+diff -urpN gcc-4.7.0.orig//gcc/gcc.c gcc-4.7.0/gcc/gcc.c
+--- gcc-4.7.0.orig//gcc/gcc.c	2012-02-28 17:31:38 +0000
++++ gcc-4.7.0/gcc/gcc.c	2012-04-18 13:31:15 +0000
+@@ -671,6 +671,8 @@ proper position among the other output f
+     LINK_PLUGIN_SPEC \
+     "%{flto|flto=*:%<fcompare-debug*} \
+     %{flto} %{flto=*} %l " LINK_PIE_SPEC \
++    " -z relro "\
++    " -z now "\
+    "%X %{o*} %{e*} %{N} %{n} %{r}\
+     %{s} %{t} %{u*} %{z} %{Z} %{!nostdlib:%{!nostartfiles:%S}}\
+     %{static:} %{L*} %(mfwrap) %(link_libgcc) %o\
